@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ttn2otel"
+version = "0.1.0"
+description = "Forward The Things Network device metrics to an OTEL Receiver"
+authors = ["Matthew Macdonald-Wallace <matt@doics.co>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+opentelemetry-api = "^1.25.0"
+opentelemetry-sdk = "^1.25.0"
+paho-mqtt = "^2.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
