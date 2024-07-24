@@ -80,7 +80,8 @@ def on_message(client, userdata, message):
             pm10 = payload["luminosity_32"]
             pm25 = payload["luminosity_33"]
             labels = {
-                    "device.name": msg["identifiers"]["device_ids"]["device_id"],
+                    "ttn.device.name": msg["end_device_ids"]["device_id"],
+                    "ttn.application.name": msg["end_device_ids"]["application_ids"]["application_id"]
                     }
             with tracer.start_as_current_span("add_metrics_to_gauge"):
                 g_ble.set(ble, labels)
