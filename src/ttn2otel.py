@@ -1,4 +1,5 @@
 #!/bin/python
+import requests
 import json
 import os
 import logging
@@ -58,6 +59,11 @@ ttn_mqtt_pass = cfg['ttn']['mqtt_pass']
 ttn_mqtt_host,ttn_mqtt_port = cfg['ttn']['mqtt_host'].split(":")
 ttn_mqtt_tls = cfg['ttn']['mqtt_tls']
 
+lookup_enabled = False
+
+if "lookups" in cfg:
+    lookup_enabled = cfg['lookups']['enabled']
+
 # Config TLS Support if necessary
 if ttn_mqtt_tls == True:
     mclient.tls_set()
@@ -83,6 +89,14 @@ def on_message(client, userdata, message):
                     "ttn.device.name": msg["end_device_ids"]["device_id"],
                     "ttn.application.name": msg["end_device_ids"]["application_ids"]["application_id"]
                     }
+            if lookup_enabled:
+                with tracer.start_as_current_span("lookup_device_details",
+                                                  kind=SpanKind.CLIENT):
+                    device_details = requests.get(f"{cfg['lookups']['server']}/devices/{msg['end_device_ids']['device_id']}/")
+                    logger.debug(f"Device Details: {device_details.text}")
+                    lat,lng = device_details.json()['geolocation'].split(',')
+                    labels['latitude'] = lat
+                    labels['longitude'] = lng
             with tracer.start_as_current_span("add_metrics_to_gauge"):
                 g_ble.set(ble, labels)
                 g_wifi.set(wifi, labels)
