@@ -12,6 +12,9 @@ ttn:
   mqtt_pass: <your TTN MQTT Password>
   mqtt_server: <your MQTT Server>
   mqtt_tls: True
+lookups:
+  enabled: True
+  server: https://<your device api server>
 ```
 
 ### Run the code
