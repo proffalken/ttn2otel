@@ -81,27 +81,27 @@ def on_message(client, userdata, message):
         try:
             logger.debug(f"Message payload was: {msg['uplink_message']['decoded_payload']}")
             payload = msg["uplink_message"]["decoded_payload"]
-            ble = payload["luminosity_21"]
-            wifi = payload["luminosity_22"]
-            pm10 = payload["luminosity_32"]
-            pm25 = payload["luminosity_33"]
-            labels = {
-                    "ttn.device.name": msg["end_device_ids"]["device_id"],
-                    "ttn.application.name": msg["end_device_ids"]["application_ids"]["application_id"]
-                    }
-            if lookup_enabled:
-                with tracer.start_as_current_span("lookup_device_details",
-                                                  kind=SpanKind.CLIENT):
-                    device_details = requests.get(f"{cfg['lookups']['server']}/devices/{msg['end_device_ids']['device_id']}/")
-                    logger.debug(f"Device Details: {device_details.text}")
-                    lat,lng = device_details.json()['geolocation'].split(',')
-                    labels['latitude'] = lat
-                    labels['longitude'] = lng
             with tracer.start_as_current_span("add_metrics_to_gauge"):
-                g_ble.set(ble, labels)
-                g_wifi.set(wifi, labels)
-                g_pm10.set(pm10, labels)
-                g_pm25.set(pm25, labels)
+                for metric in payload:
+                    metric_gauge = otel_meter.create_gauge(f"{metric}", description=f"{metric}")
+                    if type(payload[metric]) is not list and metric != "port" and metric != "timesync_seqno":
+                        metric_value = payload[metric]
+                        labels = {
+                                "ttn.device.name": msg["end_device_ids"]["device_id"],
+                                "ttn.application.name": msg["end_device_ids"]["application_ids"]["application_id"]
+                                }
+                        if lookup_enabled:
+                            with tracer.start_as_current_span("lookup_device_details",
+                                                              kind=SpanKind.CLIENT):
+                                device_details = requests.get(f"{cfg['lookups']['server']}/devices/{msg['end_device_ids']['device_id']}/")
+                                logger.debug(f"Device Details: {device_details.text}")
+                                lat,lng = device_details.json()['geolocation'].split(',')
+                                labels['latitude'] = lat
+                                labels['longitude'] = lng
+                        with tracer.start_as_current_span("set_gauge_value"):
+                            metric_gauge.set(metric_value, labels)
+                    else:
+                        logger.warning(f"Type was a list or matched a discarded metric, skipping {metric}")
         except:
             logger.warning(f"Issue decoding fields from {msg}")
 
