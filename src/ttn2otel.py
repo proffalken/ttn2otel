@@ -27,16 +27,6 @@ get_tracer_provider().add_span_processor(
 
 otel_meter = get_meter("ttn2otel")
 
-global g_ble, g_wifi, g_pm10, g_pm25
-g_ble = otel_meter.create_gauge("ble_devices",
-                    description="The number of Bluetooth Low-energy devices seen")
-g_wifi = otel_meter.create_gauge("ble_wifi",
-                    description="The number of WiFi devices seen")
-g_pm10 = otel_meter.create_gauge("pm10",
-                    description="Particulate Matter < 10µm")
-g_pm25 = otel_meter.create_gauge("pm25",
-                           description="Particulate Matter < 2.5µm")
-
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
@@ -73,7 +63,6 @@ mclient.username_pw_set(ttn_mqtt_user, ttn_mqtt_pass)
 
 # Define our message callback
 def on_message(client, userdata, message):
-    global g_ble, g_wifi, g_pm10, g_pm25
     with tracer.start_as_current_span("process_ttn_payload",
                                       kind=SpanKind.CONSUMER):
         msg = json.loads(message.payload.decode("utf-8"))
