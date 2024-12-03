@@ -17,6 +17,14 @@ lookups:
   server: https://<your device api server>
 ```
 
+### Lookups
+
+The data lookup functionality allows you to retrieve more information about the device via a remote API.
+
+Initially we only support the lookup of static lat/long coordinates via the [Make Monmouth Sensor Management Portal](https://github.com/MakeMonmouth/SensorManagement) as part of our Air Quality Sensor network, allowing us to update the location of the sensor on a map without needing the additional cost of a GPS module in the sensor itself.
+
+Pull Requests to improve this part of the code are welcome!
+
 ### Run the code
 
 Make sure you have an Open Telemetry endpoint available, then run the following:
